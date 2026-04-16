@@ -647,6 +647,10 @@ tbody tr:last-child td { border-bottom: none; }
       <a onclick="showView('desfase')" id="nav-desfase">
         <span class="nav-icon">◷</span> Análisis período
       </a>
+      <div class="sb-sep">Análisis</div>
+      <a onclick="showView('analisis')" id="nav-analisis">
+        <span class="nav-icon">📊</span> Análisis avanzado
+      </a>
       <div id="admin-nav-section" style="display:none">
         <div class="sb-sep">Administración</div>
         <a onclick="showView('carga')" id="nav-carga">
@@ -658,6 +662,7 @@ tbody tr:last-child td { border-bottom: none; }
       </div>
     </nav>
     <div class="sb-logout">
+      <a onclick="showView('cambiar-clave')" id="nav-cambiar-clave" style="display:block;padding:10px 20px;color:rgba(255,255,255,.6);font-size:12px;text-decoration:none;cursor:pointer;transition:.2s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.6)'">🔑 Cambiar contraseña</a>
       <button onclick="doLogout()">Cerrar sesión</button>
     </div>
   </div>
@@ -672,11 +677,11 @@ tbody tr:last-child td { border-bottom: none; }
         <select class="filter-select" id="f-periodo" onchange="applyFilters()">
           <option value="">Todos los períodos</option>
         </select>
-        <select class="filter-select" id="f-clinica" onchange="applyFilters()">
-          <option value="">Todas las clínicas</option>
+        <select class="filter-select" id="f-clinica" multiple size="4" style="height:auto;min-height:36px" onchange="applyFilters()">
+          <option value="">Todos los prestadores</option>
         </select>
-        <select class="filter-select" id="f-mutual" onchange="applyFilters()">
-          <option value="">Todas las mutuales</option>
+        <select class="filter-select" id="f-mutual" multiple size="4" style="height:auto;min-height:36px" onchange="applyFilters()">
+          <option value="">Todos los financiadores</option>
         </select>
         <select class="filter-select" id="f-tipo" onchange="applyFilters()">
           <option value="">AMB + INT</option>
@@ -695,8 +700,8 @@ tbody tr:last-child td { border-bottom: none; }
           <div class="kpi-card"><div class="kpi-label">Total filas</div><div class="kpi-value" id="k-filas">—</div></div>
           <div class="kpi-card"><div class="kpi-label">Importe</div><div class="kpi-value money" id="k-importe">—</div></div>
           <div class="kpi-card"><div class="kpi-label">A liquidar</div><div class="kpi-value money" id="k-liquida">—</div></div>
-          <div class="kpi-card"><div class="kpi-label">Clínicas</div><div class="kpi-value" id="k-clinicas">—</div></div>
-          <div class="kpi-card"><div class="kpi-label">Mutuales</div><div class="kpi-value" id="k-mutuales">—</div></div>
+          <div class="kpi-card"><div class="kpi-label">Prestadores</div><div class="kpi-value" id="k-clinicas">—</div></div>
+          <div class="kpi-card"><div class="kpi-label">Financiadores</div><div class="kpi-value" id="k-mutuales">—</div></div>
           <div class="kpi-card"><div class="kpi-label">Lotes</div><div class="kpi-value" id="k-lotes">—</div></div>
           <div class="kpi-card"><div class="kpi-label">AMB</div><div class="kpi-value" id="k-amb" style="color:var(--amb)">—</div></div>
           <div class="kpi-card"><div class="kpi-label">INT</div><div class="kpi-value" id="k-int" style="color:var(--int)">—</div></div>
@@ -709,11 +714,11 @@ tbody tr:last-child td { border-bottom: none; }
               <button class="btn-secondary" onclick="downloadResumen()">↓ Excel</button>
             </div>
             <div class="table-wrap">
-              <table id="tbl-resumen">
+              <table id="tbl-resumen"><tbody id="tbody-resumen">
                 <thead>
                   <tr>
-                    <th>Clínica</th>
-                    <th>Tipo</th>
+                    <th onclick="sortTable('nom_clinica','tbody-resumen')" data-sort="nom_clinica" style="cursor:pointer">Prestador <span class="sort-ind"></span></th>
+                    <th onclick="sortTable('tipo','tbody-resumen')" data-sort="tipo" style="cursor:pointer">Tipo <span class="sort-ind"></span></th>
                     <th>Filas</th>
                     <th style="text-align:right">Importe</th>
                     <th style="text-align:right">Liquida</th>
@@ -897,7 +902,7 @@ tbody tr:last-child td { border-bottom: none; }
                   <th>Nombre</th>
                   <th>Rol</th>
                   <th>Estado</th>
-                  <th>Clínicas asignadas</th>
+                  <th>Prestadores asignados</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
@@ -907,6 +912,116 @@ tbody tr:last-child td { border-bottom: none; }
             </table>
           </div>
         </div>
+
+      <!-- ── ANÁLISIS AVANZADO VIEW ── -->
+      <div class="view" id="view-analisis">
+        <div class="grid2">
+          <!-- Prácticas por prestador/financiador -->
+          <div class="table-card">
+            <div class="table-card-head">
+              <div class="table-card-title">Prácticas por prestador / financiador</div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <select class="filter-select" id="a-agrupar" onchange="loadAnalisisPracticas()" style="font-size:11px">
+                  <option value="prestador">Por prestador</option>
+                  <option value="financiador">Por financiador</option>
+                  <option value="ambos">Ambos</option>
+                </select>
+                <select class="filter-select" id="a-tipo-prac" onchange="loadAnalisisPracticas()" style="font-size:11px">
+                  <option value="">AMB + INT</option>
+                  <option value="AMB">Solo AMB</option>
+                  <option value="INT">Solo INT</option>
+                </select>
+                <button class="btn-secondary" onclick="loadAnalisisPracticas()">↻ Actualizar</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th onclick="sortTable('practica','tbody-practicas')" data-sort="practica" style="cursor:pointer">Práctica <span class="sort-ind"></span></th>
+                    <th onclick="sortTable('nom_clinica','tbody-practicas')" data-sort="nom_clinica" style="cursor:pointer">Prestador <span class="sort-ind"></span></th>
+                    <th onclick="sortTable('nom_mutual','tbody-practicas')" data-sort="nom_mutual" style="cursor:pointer">Financiador <span class="sort-ind"></span></th>
+                    <th onclick="sortTable('cantidad','tbody-practicas')" data-sort="cantidad" style="cursor:pointer;text-align:right">Cant <span class="sort-ind"></span></th>
+                    <th onclick="sortTable('importe_total','tbody-practicas')" data-sort="importe_total" style="cursor:pointer;text-align:right">Importe <span class="sort-ind"></span></th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-practicas">
+                  <tr class="loading-row"><td colspan="5">Seleccioná filtros y hacé clic en Actualizar</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Evolución de facturación -->
+          <div class="table-card">
+            <div class="table-card-head">
+              <div class="table-card-title">Evolución de facturación</div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <select class="filter-select" id="a-evol-por" onchange="loadEvolucion()" style="font-size:11px">
+                  <option value="prestador">Por prestador</option>
+                  <option value="financiador">Por financiador</option>
+                  <option value="prestador_financiador">Prestador + financiador</option>
+                </select>
+                <select class="filter-select" id="a-tipo-evol" onchange="loadEvolucion()" style="font-size:11px">
+                  <option value="">AMB + INT</option>
+                  <option value="AMB">Solo AMB</option>
+                  <option value="INT">Solo INT</option>
+                </select>
+                <button class="btn-secondary" onclick="loadEvolucion()">↻ Actualizar</button>
+              </div>
+            </div>
+            <div style="padding:0 16px 16px">
+              <canvas id="chart-evolucion" height="220"></canvas>
+            </div>
+            <div class="table-wrap" style="max-height:220px">
+              <table>
+                <thead>
+                  <tr>
+                    <th onclick="sortTable('periodo','tbody-evolucion')" data-sort="periodo" style="cursor:pointer">Período <span class="sort-ind"></span></th>
+                    <th onclick="sortTable('etiqueta','tbody-evolucion')" data-sort="etiqueta" style="cursor:pointer">Entidad <span class="sort-ind"></span></th>
+                    <th onclick="sortTable('cantidad','tbody-evolucion')" data-sort="cantidad" style="cursor:pointer;text-align:right">Cant <span class="sort-ind"></span></th>
+                    <th onclick="sortTable('importe_total','tbody-evolucion')" data-sort="importe_total" style="cursor:pointer;text-align:right">Importe <span class="sort-ind"></span></th>
+                  </tr>
+                </thead>
+                <tbody id="tbody-evolucion">
+                  <tr class="loading-row"><td colspan="4">Seleccioná filtros y hacé clic en Actualizar</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CAMBIAR CLAVE VIEW ── -->
+      <div class="view" id="view-cambiar-clave">
+        <div style="max-width:420px;margin:40px auto">
+          <div class="table-card">
+            <div class="table-card-head">
+              <div class="table-card-title">Cambiar contraseña</div>
+            </div>
+            <div style="padding:24px">
+              <div id="cambiar-clave-msg" style="display:none;margin-bottom:16px;padding:10px 14px;border-radius:6px;font-size:13px"></div>
+              <div style="margin-bottom:14px">
+                <label style="font-size:12px;color:var(--ink2);display:block;margin-bottom:6px">Contraseña actual</label>
+                <input type="password" id="clave-actual" class="filter-select" style="width:100%;padding:10px 12px" placeholder="Tu contraseña actual">
+              </div>
+              <div style="margin-bottom:14px">
+                <label style="font-size:12px;color:var(--ink2);display:block;margin-bottom:6px">Nueva contraseña</label>
+                <input type="password" id="clave-nueva" class="filter-select" style="width:100%;padding:10px 12px" placeholder="Mínimo 6 caracteres">
+              </div>
+              <div style="margin-bottom:20px">
+                <label style="font-size:12px;color:var(--ink2);display:block;margin-bottom:6px">Confirmar nueva contraseña</label>
+                <input type="password" id="clave-confirmar" class="filter-select" style="width:100%;padding:10px 12px" placeholder="Repetí la nueva contraseña">
+              </div>
+              <button class="btn-primary" onclick="cambiarClave()" style="width:100%">Actualizar contraseña</button>
+              <div id="clave-admin-note" style="display:none;margin-top:16px;padding:10px 14px;background:var(--sur2);border-radius:6px;font-size:12px;color:var(--ink2)">
+                ⓘ Como administrador, tu contraseña se cambia desde Railway (variable <code>ADMIN_PASS</code>).
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       </div>
 
     </div>
@@ -935,8 +1050,8 @@ tbody tr:last-child td { border-bottom: none; }
     <div class="form-group">
       <label class="form-label">Rol</label>
       <select class="filter-select" id="mu-rol" style="width:100%">
-        <option value="prestador">Prestador (ve sus clínicas)</option>
-        <option value="interno">Interno (ve clínicas asignadas)</option>
+        <option value="prestador">Prestador (ve sus prestadores)</option>
+        <option value="interno">Interno (ve prestadores asignados)</option>
         <option value="admin">Admin (ve todo)</option>
       </select>
     </div>
@@ -950,7 +1065,7 @@ tbody tr:last-child td { border-bottom: none; }
 <!-- Modal permisos de clínica -->
 <div class="modal-overlay" id="modal-permisos">
   <div class="modal">
-    <div class="modal-title">Clínicas asignadas</div>
+    <div class="modal-title">Prestadores asignados</div>
     <div style="font-size:12px;color:var(--ink2);margin-bottom:14px" id="permisos-uname">—</div>
     <div id="permisos-tags" style="margin-bottom:16px;min-height:36px"></div>
     <div style="display:flex;gap:8px">
@@ -1086,13 +1201,13 @@ async function loadFilters() {
     if (periodos && periodos.length > 0) fp.value = periodos[0];
 
     const fc = document.getElementById('f-clinica');
-    fc.innerHTML = '<option value="">Todas las clínicas</option>';
+    fc.innerHTML = '<option value="">Todos los prestadores</option>';
     (clinicas || []).forEach(c => {
       const o = document.createElement('option'); o.value = c.clinica_id; o.textContent = c.nom_clinica; fc.appendChild(o);
     });
 
     const fm = document.getElementById('f-mutual');
-    fm.innerHTML = '<option value="">Todas las mutuales</option>';
+    fm.innerHTML = '<option value="">Todos los financiadores</option>';
     (mutuales || []).forEach(m => {
       const o = document.createElement('option'); o.value = m.mutual_id; o.textContent = m.nom_mutual; fm.appendChild(o);
     });
@@ -1100,11 +1215,13 @@ async function loadFilters() {
 }
 
 function getFilters() {
+  const cEl = document.getElementById('f-clinica');
+  const mEl = document.getElementById('f-mutual');
   return {
-    periodo:  document.getElementById('f-periodo').value,
-    clinica:  document.getElementById('f-clinica').value,
-    mutual:   document.getElementById('f-mutual').value,
-    tipo:     document.getElementById('f-tipo').value,
+    periodo:      document.getElementById('f-periodo').value,
+    clinicas_ids: cEl ? Array.from(cEl.selectedOptions).map(o=>o.value).filter(v=>v).join(',') : '',
+    mutuales_ids: mEl ? Array.from(mEl.selectedOptions).map(o=>o.value).filter(v=>v).join(',') : '',
+    tipo:         document.getElementById('f-tipo').value,
   };
 }
 
@@ -1122,15 +1239,18 @@ function showView(name) {
   document.getElementById('view-' + name).classList.add('active');
   document.getElementById('nav-' + name).classList.add('active');
   const titles = { dashboard: 'Dashboard', detalle: 'Detalle de prestaciones',
-                   desfase: 'Análisis de período', carga: 'Carga de datos', usuarios: 'Gestión de usuarios' };
+                   desfase: 'Análisis de período', carga: 'Carga de datos', usuarios: 'Gestión de usuarios',
+                   analisis: 'Análisis avanzado', 'cambiar-clave': 'Cambiar contraseña' };
   document.getElementById('topbar-title').textContent = titles[name] || name;
   const topbarFilters = document.getElementById('topbar-filters');
-  topbarFilters.style.display = ['carga','usuarios'].includes(name) ? 'none' : 'flex';
+  topbarFilters.style.display = ['carga','usuarios','cambiar-clave'].includes(name) ? 'none' : 'flex';
   if (name === 'dashboard')  loadDashboard();
   if (name === 'detalle')    { detOffset = 0; loadDetalle(); }
   if (name === 'desfase')    loadDesfase();
   if (name === 'carga')      loadHistorial();
   if (name === 'usuarios')   loadUsuarios();
+  if (name === 'analisis')   { loadAnalisisPracticas(); loadEvolucion(); }
+  if (name === 'cambiar-clave') { const adminNote = document.getElementById('clave-admin-note'); if(adminNote) adminNote.style.display = (currentUser && currentUser.rol === 'admin') ? 'block' : 'none'; }
 }
 
 // ── DASHBOARD ──────────────────────────────────────────────
@@ -1152,12 +1272,31 @@ function fmt(n) {
   if (n == null || n === '') return '—';
   return Math.round(n).toLocaleString('es-AR');
 }
+function fmtPeso(n) {
+  if (n == null || n === '') return '—';
+  const num = parseFloat(n);
+  if (isNaN(num)) return '—';
+  if (Math.abs(num) >= 1e10) return '$ ' + (num/1e9).toFixed(2).replace(/\.?0+$/,'') + ' MM';
+  if (Math.abs(num) >= 1e9)  return '$ ' + (num/1e9).toFixed(2) + ' MM';
+  if (Math.abs(num) >= 1e6)  return '$ ' + (num/1e6).toFixed(1) + ' M';
+  return '$ ' + num.toLocaleString('es-AR', {maximumFractionDigits:0});
+}
+function fmtBig(n) {
+  if (n == null || n === '') return '—';
+  const num = parseFloat(n);
+  if (isNaN(num)) return '—';
+  if (Math.abs(num) >= 1e10) return (num/1e9).toFixed(1) + ' MM';
+  if (Math.abs(num) >= 1e9)  return (num/1e9).toFixed(2) + ' MM';
+  if (Math.abs(num) >= 1e6)  return (num/1e6).toFixed(1) + ' M';
+  if (Math.abs(num) >= 1e3)  return (num/1e3).toFixed(0) + 'K';
+  return num.toLocaleString('es-AR');
+}
 
 function renderKpis(k) {
   if (!k) return;
   document.getElementById('k-filas').textContent    = fmt(k.total_filas);
-  document.getElementById('k-importe').textContent  = fmt(k.importe_total);
-  document.getElementById('k-liquida').textContent  = fmt(k.liquida_total);
+  document.getElementById('k-importe').textContent  = fmtPeso(k.importe_total);
+  document.getElementById('k-liquida').textContent  = fmtPeso(k.liquida_total);
   document.getElementById('k-clinicas').textContent = k.total_clinicas;
   document.getElementById('k-mutuales').textContent = k.total_mutuales;
   document.getElementById('k-lotes').textContent    = k.total_lotes;
@@ -1428,7 +1567,7 @@ async function loadUsuarios() {
         <td style="max-width:200px">${tags}</td>
         <td>
           <div style="display:flex;gap:6px">
-            <button class="btn-secondary" style="padding:3px 10px;font-size:11px" onclick="openPermisos(${u.id},'${u.username}')">Clínicas</button>
+            <button class="btn-secondary" style="padding:3px 10px;font-size:11px" onclick="openPermisos(${u.id},'${u.username}')">Prestadores</button>
             <button class="btn-secondary" style="padding:3px 10px;font-size:11px" onclick="toggleActivo(${u.id},${u.activo})">${u.activo?'Desactivar':'Activar'}</button>
           </div>
         </td>
@@ -1539,9 +1678,142 @@ async function downloadDetalle() {
     if (!blob) return;
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url;
-    a.download = `GEA_Detalle_${f.periodo||'todo'}.xlsx`;
+    a.download = `CES_Detalle_${f.periodo||'todo'}.xlsx`;
     a.click(); URL.revokeObjectURL(url);
   } catch(e) { toast(e.message, 'err'); }
+}
+
+
+// ── ANALISIS AVANZADO ───────────────────────────────────────
+let chartEvolucion = null;
+
+async function loadAnalisisPracticas() {
+  const f = getFilters();
+  const agrupar = document.getElementById('a-agrupar').value;
+  const tipo = document.getElementById('a-tipo-prac').value;
+  const params = new URLSearchParams();
+  if (f.clinicas_ids) f.clinicas_ids.split(',').forEach(c => params.append('clinicas_ids', c));
+  if (f.mutuales_ids) f.mutuales_ids.split(',').forEach(m => params.append('mutuales_ids', m));
+  if (tipo) params.append('tipo', tipo);
+  params.append('top', '50');
+  try {
+    const data = await api('GET', '/analisis/practicas?' + params.toString());
+    const tbody = document.getElementById('tbody-practicas');
+    if (!data || !data.length) { tbody.innerHTML = '<tr class="loading-row"><td colspan="5">Sin datos para los filtros seleccionados</td></tr>'; return; }
+    tbody.innerHTML = data.map(r => `
+      <tr data-practica="${r.practica||''}" data-nom_clinica="${r.nom_clinica||''}" data-nom_mutual="${r.nom_mutual||''}" data-cantidad="${r.cantidad||0}" data-importe_total="${r.importe_total||0}">
+        <td><span style="font-family:var(--mono);font-size:11px;color:var(--ink2)">${r.practica||'—'}</span> ${r.nom_practica||''}</td>
+        <td>${r.nom_clinica||'—'}</td>
+        <td>${r.nom_mutual||'—'}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmt(r.cantidad)}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmtPeso(r.importe_total)}</td>
+      </tr>`).join('');
+  } catch(e) { toast('Error análisis prácticas: ' + e.message, 'err'); }
+}
+
+async function loadEvolucion() {
+  const f = getFilters();
+  const agrupar = document.getElementById('a-evol-por').value;
+  const tipo = document.getElementById('a-tipo-evol').value;
+  const params = new URLSearchParams();
+  if (f.clinicas_ids) f.clinicas_ids.split(',').forEach(c => params.append('clinicas_ids', c));
+  if (f.mutuales_ids) f.mutuales_ids.split(',').forEach(m => params.append('mutuales_ids', m));
+  if (tipo) params.append('tipo', tipo);
+  params.append('agrupar_por', agrupar);
+  try {
+    const data = await api('GET', '/analisis/evolucion?' + params.toString());
+    const tbody = document.getElementById('tbody-evolucion');
+    if (!data || !data.length) { tbody.innerHTML = '<tr class="loading-row"><td colspan="4">Sin datos</td></tr>'; return; }
+    tbody.innerHTML = data.map(r => `
+      <tr data-periodo="${r.periodo||''}" data-etiqueta="${r.etiqueta||''}" data-cantidad="${r.cantidad||0}" data-importe_total="${r.importe_total||0}">
+        <td style="font-family:var(--mono)">${r.periodo||'—'}</td>
+        <td>${r.etiqueta||'—'}${r.etiqueta2?' / '+r.etiqueta2:''}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmt(r.cantidad)}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmtPeso(r.importe_total)}</td>
+      </tr>`).join('');
+    // Build chart
+    renderEvolucionChart(data, agrupar);
+  } catch(e) { toast('Error evolución: ' + e.message, 'err'); }
+}
+
+function renderEvolucionChart(data, agrupar) {
+  const ctx = document.getElementById('chart-evolucion');
+  if (!ctx) return;
+  if (chartEvolucion) { chartEvolucion.destroy(); chartEvolucion = null; }
+  // Group by etiqueta, collect periodos
+  const periodosSet = [...new Set(data.map(r => r.periodo))].sort();
+  const entidadesSet = [...new Set(data.map(r => r.etiqueta + (r.etiqueta2?' / '+r.etiqueta2:'')))].slice(0, 12);
+  const palette = ['#1B3A6B','#C8401A','#2D7A4F','#8B4513','#5C4E8E','#1B6B5A','#8E1B3A','#4E6B1B','#6B1B5C','#1B5C6B','#6B5C1B','#3A1B6B'];
+  const datasets = entidadesSet.map((ent, i) => {
+    const rowsByPeriodo = {};
+    data.filter(r => (r.etiqueta + (r.etiqueta2?' / '+r.etiqueta2:'')) === ent).forEach(r => rowsByPeriodo[r.periodo] = r.importe_total);
+    return {
+      label: ent.length > 25 ? ent.slice(0,25)+'…' : ent,
+      data: periodosSet.map(p => rowsByPeriodo[p] || 0),
+      borderColor: palette[i % palette.length],
+      backgroundColor: palette[i % palette.length] + '22',
+      borderWidth: 2, pointRadius: 3, tension: 0.3, fill: false,
+    };
+  });
+  chartEvolucion = new Chart(ctx, {
+    type: 'line',
+    data: { labels: periodosSet, datasets },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 12 } } },
+      scales: {
+        y: { ticks: { callback: v => fmtPeso(v) }, grid: { color: 'rgba(0,0,0,.06)' } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+}
+
+// ── CAMBIAR CLAVE ────────────────────────────────────────────
+async function cambiarClave() {
+  const cur = document.getElementById('clave-actual').value;
+  const nw = document.getElementById('clave-nueva').value;
+  const conf = document.getElementById('clave-confirmar').value;
+  const msg = document.getElementById('cambiar-clave-msg');
+  
+  if (!cur || !nw || !conf) {
+    showClaveMsg('Completá todos los campos', 'err'); return;
+  }
+  if (nw !== conf) {
+    showClaveMsg('Las contraseñas nuevas no coinciden', 'err'); return;
+  }
+  if (nw.length < 6) {
+    showClaveMsg('La contraseña debe tener al menos 6 caracteres', 'err'); return;
+  }
+  try {
+    await api('POST', '/auth/change-password', { password_actual: cur, password_nuevo: nw });
+    showClaveMsg('✓ Contraseña actualizada correctamente', 'ok');
+    document.getElementById('clave-actual').value = '';
+    document.getElementById('clave-nueva').value = '';
+    document.getElementById('clave-confirmar').value = '';
+  } catch(e) {
+    showClaveMsg(e.message || 'Error al cambiar contraseña', 'err');
+  }
+}
+
+function showClaveMsg(text, type) {
+  const el = document.getElementById('cambiar-clave-msg');
+  el.textContent = text;
+  el.style.display = 'block';
+  el.style.background = type === 'ok' ? '#d1fae5' : '#fee2e2';
+  el.style.color = type === 'ok' ? '#065f46' : '#991b1b';
+  el.style.border = '1px solid ' + (type === 'ok' ? '#6ee7b7' : '#fca5a5');
+}
+
+// ── ADMIN CHANGE PASSWORD ────────────────────────────────────
+async function adminCambiarClave(uid, username) {
+  const nw = prompt(`Nueva contraseña para ${username} (mín. 6 caracteres):`);
+  if (!nw) return;
+  if (nw.length < 6) { toast('La contraseña debe tener al menos 6 caracteres', 'err'); return; }
+  try {
+    await api('POST', `/usuarios/${uid}/change-password`, { password_nuevo: nw });
+    toast('Contraseña actualizada para ' + username, 'ok');
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
 }
 
 // ── MODAL ──────────────────────────────────────────────────
