@@ -982,25 +982,96 @@ tbody tr:last-child td { border-bottom: none; }
     <div class="content">
 
       <!-- KPI persistente -->
-        <div class="kpi-row" id="kpi-row">
-          <div class="kpi-card col-importe" style="flex:2;min-width:220px"><div class="kpi-label">Importe facturado</div><div class="kpi-value" id="k-importe" style="font-size:20px;line-height:1.3;font-weight:600">—</div></div>
-          <div class="kpi-card col-liquida" style="flex:2;min-width:220px"><div class="kpi-label">A liquidar</div><div class="kpi-value" id="k-liquida" style="font-size:20px;line-height:1.3;font-weight:600;color:var(--acc3)">—</div></div>
-          <div class="kpi-card"><div class="kpi-label">Prestadores</div><div class="kpi-value" id="k-clinicas">—</div></div>
-          <div class="kpi-card"><div class="kpi-label">Financiadores</div><div class="kpi-value" id="k-mutuales">—</div></div>
-          <div class="kpi-card" id="kpi-gauge-amb" style="flex:1.2;min-width:140px">
-            <div class="kpi-label">AMB <span id="k-amb-pct" style="font-size:10px;color:var(--ink3);font-family:var(--mono)"></span></div>
-            <div class="kpi-value" id="k-amb" style="color:var(--amb)">—</div>
-            <div style="margin-top:6px;height:5px;background:var(--sur3);border-radius:3px;overflow:hidden">
-              <div id="gauge-amb" style="height:100%;width:0%;background:var(--amb);border-radius:3px;transition:width .5s ease"></div>
+        <div class="kpi-row" id="kpi-row" style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+
+          <!-- IMPORTE FACTURADO -->
+          <div class="kpi-card col-importe" style="flex:2;min-width:220px;position:relative;overflow:hidden">
+            <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--ces-blue),var(--acc-glow))"></div>
+            <div class="kpi-label" style="display:flex;align-items:center;gap:6px">
+              <span style="width:7px;height:7px;border-radius:50%;background:var(--ces-blue);display:inline-block"></span>IMPORTE FACTURADO
+            </div>
+            <div id="k-importe" style="font-size:22px;font-weight:700;color:var(--ink);line-height:1.2;margin:6px 0 8px">—</div>
+            <div style="display:flex;gap:6px">
+              <div style="flex:1;background:rgba(27,58,107,.06);border-radius:5px;padding:6px 8px">
+                <div style="font-size:9px;font-family:var(--mono);letter-spacing:.08em;color:var(--ink3);text-transform:uppercase;margin-bottom:3px">AMB</div>
+                <div id="k-imp-amb" style="font-size:12px;font-weight:600;color:var(--amb);font-family:var(--mono)">—</div>
+                <div style="margin-top:4px;height:3px;background:rgba(27,58,107,.15);border-radius:2px"><div id="bar-imp-amb" style="height:100%;width:0%;background:var(--amb);border-radius:2px;transition:width .5s ease"></div></div>
+                <div id="pct-imp-amb" style="font-size:9px;color:var(--ink3);margin-top:2px;font-family:var(--mono)"></div>
+              </div>
+              <div style="flex:1;background:rgba(124,58,237,.06);border-radius:5px;padding:6px 8px">
+                <div style="font-size:9px;font-family:var(--mono);letter-spacing:.08em;color:var(--ink3);text-transform:uppercase;margin-bottom:3px">INT</div>
+                <div id="k-imp-int" style="font-size:12px;font-weight:600;color:var(--int);font-family:var(--mono)">—</div>
+                <div style="margin-top:4px;height:3px;background:rgba(124,58,237,.15);border-radius:2px"><div id="bar-imp-int" style="height:100%;width:0%;background:var(--int);border-radius:2px;transition:width .5s ease"></div></div>
+                <div id="pct-imp-int" style="font-size:9px;color:var(--ink3);margin-top:2px;font-family:var(--mono)"></div>
+              </div>
             </div>
           </div>
-          <div class="kpi-card" id="kpi-gauge-int" style="flex:1.2;min-width:140px">
-            <div class="kpi-label">INT <span id="k-int-pct" style="font-size:10px;color:var(--ink3);font-family:var(--mono)"></span></div>
-            <div class="kpi-value" id="k-int" style="color:var(--int)">—</div>
-            <div style="margin-top:6px;height:5px;background:var(--sur3);border-radius:3px;overflow:hidden">
-              <div id="gauge-int" style="height:100%;width:0%;background:var(--int);border-radius:3px;transition:width .5s ease"></div>
+
+          <!-- A LIQUIDAR -->
+          <div class="kpi-card col-liquida" style="flex:2;min-width:220px;position:relative;overflow:hidden">
+            <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--acc3),#34d399)"></div>
+            <div class="kpi-label" style="display:flex;align-items:center;gap:6px">
+              <span style="width:7px;height:7px;border-radius:50%;background:var(--acc3);display:inline-block"></span>A LIQUIDAR
+            </div>
+            <div id="k-liquida" style="font-size:22px;font-weight:700;color:var(--acc3);line-height:1.2;margin:6px 0 8px">—</div>
+            <div style="display:flex;gap:6px">
+              <div style="flex:1;background:rgba(5,150,105,.06);border-radius:5px;padding:6px 8px">
+                <div style="font-size:9px;font-family:var(--mono);letter-spacing:.08em;color:var(--ink3);text-transform:uppercase;margin-bottom:3px">AMB</div>
+                <div id="k-liq-amb" style="font-size:12px;font-weight:600;color:var(--acc3);font-family:var(--mono)">—</div>
+                <div style="margin-top:4px;height:3px;background:rgba(5,150,105,.15);border-radius:2px"><div id="bar-liq-amb" style="height:100%;width:0%;background:var(--acc3);border-radius:2px;transition:width .5s ease"></div></div>
+                <div id="pct-liq-amb" style="font-size:9px;color:var(--ink3);margin-top:2px;font-family:var(--mono)"></div>
+              </div>
+              <div style="flex:1;background:rgba(124,58,237,.06);border-radius:5px;padding:6px 8px">
+                <div style="font-size:9px;font-family:var(--mono);letter-spacing:.08em;color:var(--ink3);text-transform:uppercase;margin-bottom:3px">INT</div>
+                <div id="k-liq-int" style="font-size:12px;font-weight:600;color:var(--int);font-family:var(--mono)">—</div>
+                <div style="margin-top:4px;height:3px;background:rgba(124,58,237,.15);border-radius:2px"><div id="bar-liq-int" style="height:100%;width:0%;background:var(--int);border-radius:2px;transition:width .5s ease"></div></div>
+                <div id="pct-liq-int" style="font-size:9px;color:var(--ink3);margin-top:2px;font-family:var(--mono)"></div>
+              </div>
             </div>
           </div>
+
+          <!-- PRESTADORES -->
+          <div class="kpi-card" style="min-width:120px;position:relative;overflow:hidden">
+            <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--acc4)"></div>
+            <div class="kpi-label" style="display:flex;align-items:center;gap:6px">
+              <span style="width:7px;height:7px;border-radius:50%;background:var(--acc4);display:inline-block"></span>PRESTADORES
+            </div>
+            <div id="k-clinicas" class="kpi-value" style="margin-top:8px">—</div>
+          </div>
+
+          <!-- FINANCIADORES -->
+          <div class="kpi-card" style="min-width:120px;position:relative;overflow:hidden">
+            <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--acc5)"></div>
+            <div class="kpi-label" style="display:flex;align-items:center;gap:6px">
+              <span style="width:7px;height:7px;border-radius:50%;background:var(--acc5);display:inline-block"></span>FINANCIADORES
+            </div>
+            <div id="k-mutuales" class="kpi-value" style="margin-top:8px">—</div>
+          </div>
+
+          <!-- PRESTACIONES AMB+INT -->
+          <div class="kpi-card" style="min-width:160px;position:relative;overflow:hidden">
+            <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--amb),var(--int))"></div>
+            <div class="kpi-label">PRESTACIONES</div>
+            <div style="margin-top:8px;display:flex;align-items:baseline;gap:5px">
+              <span id="k-amb" style="font-size:18px;font-weight:700;color:var(--amb)">—</span>
+              <span id="k-amb-pct" style="font-size:10px;color:var(--ink3);font-family:var(--mono)"></span>
+            </div>
+            <div style="height:4px;background:var(--sur3);border-radius:2px;overflow:hidden;margin:3px 0 4px">
+              <div id="gauge-amb" style="height:100%;width:0%;background:var(--amb);border-radius:2px;transition:width .5s ease"></div>
+            </div>
+            <div style="display:flex;align-items:baseline;gap:5px">
+              <span id="k-int" style="font-size:18px;font-weight:700;color:var(--int)">—</span>
+              <span id="k-int-pct" style="font-size:10px;color:var(--ink3);font-family:var(--mono)"></span>
+            </div>
+            <div style="height:4px;background:var(--sur3);border-radius:2px;overflow:hidden;margin:3px 0 0">
+              <div id="gauge-int" style="height:100%;width:0%;background:var(--int);border-radius:2px;transition:width .5s ease"></div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:6px;font-size:9px;font-family:var(--mono);color:var(--ink3)">
+              <span style="display:flex;align-items:center;gap:3px"><span style="width:6px;height:6px;border-radius:50%;background:var(--amb);display:inline-block"></span>AMB</span>
+              <span style="display:flex;align-items:center;gap:3px"><span style="width:6px;height:6px;border-radius:50%;background:var(--int);display:inline-block"></span>INT</span>
+            </div>
+          </div>
+
         </div>
 
         <div class="grid2">
@@ -1627,8 +1698,9 @@ function qs(f) {
     if (pArr.length >= 1) p.append('periodo', pArr[0]); // solo el primero por ahora
   } else if (f.periodo) p.append('periodo', f.periodo);
   if (f.tipo)         p.append('tipo', f.tipo);
-  if (f.clinicas_ids) f.clinicas_ids.split(',').filter(Boolean).forEach(c => p.append('clinicas_ids', c));
-  if (f.mutuales_ids) f.mutuales_ids.split(',').filter(Boolean).forEach(m => p.append('mutuales_ids', m));
+  // Pasar como string comma-separated — el backend usa split(',') para parsear
+  if (f.clinicas_ids) p.append('clinicas_ids', f.clinicas_ids);
+  if (f.mutuales_ids) p.append('mutuales_ids', f.mutuales_ids);
   // pass-through extra keys (agrupar, etc)
   const known = new Set(['periodos_ids','periodo','tipo','clinicas_ids','mutuales_ids']);
   Object.entries(f).forEach(([k,v]) => { if (!known.has(k) && v !== '' && v != null) p.append(k, v); });
@@ -1848,27 +1920,54 @@ function fmtBig(n) {
 function renderKpis(k) {
   if (!k) return;
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-  set('k-filas',    fmt(k.total_filas));
+  const setW = (id, pct) => { const el = document.getElementById(id); if (el) el.style.width = pct + '%'; };
+
+  // Totales principales
   set('k-importe',  fmtPeso(k.importe_total, 2));
   set('k-liquida',  fmtPeso(k.liquida_total, 2));
   set('k-clinicas', k.total_clinicas);
   set('k-mutuales', k.total_mutuales);
-  set('k-lotes',    k.total_lotes);
-  set('k-amb',      fmt(k.filas_amb));
-  set('k-int',      fmt(k.filas_int));
-  // Gauges AMB / INT
+
+  // Desglose importe AMB/INT
+  const impTotal = (k.importe_amb || 0) + (k.importe_int || 0);
+  if (impTotal > 0) {
+    const pIA = Math.round((k.importe_amb / impTotal) * 100);
+    const pII = 100 - pIA;
+    set('k-imp-amb', fmtBig(k.importe_amb));
+    set('k-imp-int', fmtBig(k.importe_int));
+    set('pct-imp-amb', pIA + '%');
+    set('pct-imp-int', pII + '%');
+    setW('bar-imp-amb', pIA);
+    setW('bar-imp-int', pII);
+  } else if (k.importe_total == null) {
+    // sin permiso de ver importe — limpiar
+    ['k-imp-amb','k-imp-int','pct-imp-amb','pct-imp-int'].forEach(id => set(id, ''));
+  }
+
+  // Desglose liquida AMB/INT
+  const liqTotal = (k.liquida_amb || 0) + (k.liquida_int || 0);
+  if (liqTotal > 0) {
+    const pLA = Math.round((k.liquida_amb / liqTotal) * 100);
+    const pLI = 100 - pLA;
+    set('k-liq-amb', fmtBig(k.liquida_amb));
+    set('k-liq-int', fmtBig(k.liquida_int));
+    set('pct-liq-amb', pLA + '%');
+    set('pct-liq-int', pLI + '%');
+    setW('bar-liq-amb', pLA);
+    setW('bar-liq-int', pLI);
+  }
+
+  // Gauges de prestaciones (filas) AMB / INT
   const total = (k.filas_amb || 0) + (k.filas_int || 0);
   if (total > 0) {
     const pAmb = Math.round((k.filas_amb / total) * 100);
-    const pInt = Math.round((k.filas_int / total) * 100);
-    const gAmb = document.getElementById('gauge-amb');
-    const gInt = document.getElementById('gauge-int');
-    const pAmb_el = document.getElementById('k-amb-pct');
-    const pInt_el = document.getElementById('k-int-pct');
-    if (gAmb) gAmb.style.width = pAmb + '%';
-    if (gInt) gInt.style.width = pInt + '%';
-    if (pAmb_el) pAmb_el.textContent = pAmb + '%';
-    if (pInt_el) pInt_el.textContent = pInt + '%';
+    const pInt = 100 - pAmb;
+    set('k-amb',     fmt(k.filas_amb));
+    set('k-int',     fmt(k.filas_int));
+    set('k-amb-pct', pAmb + '%');
+    set('k-int-pct', pInt + '%');
+    setW('gauge-amb', pAmb);
+    setW('gauge-int', pInt);
   }
 }
 
@@ -2288,14 +2387,7 @@ async function openPermisos(uid, username) {
   document.getElementById('permisos-uname').textContent = username;
   const sel = document.getElementById('perm-clinica-sel');
   sel.innerHTML = '<option value="">Seleccioná una clínica...</option>';
-  // Usar M.clinicas (maestro embebido) como fuente — no depende de datos cargados en la BD
-  const clinicasSrc = allClinicas && allClinicas.length > 0
-    ? allClinicas
-    : Object.entries(M.clinicas)
-        .filter(([k]) => parseInt(k) < 80) // excluir proveedores varios y entradas especiales
-        .map(([k, v]) => ({ clinica_id: parseInt(k), nom_clinica: v }))
-        .sort((a, b) => a.nom_clinica.localeCompare(b.nom_clinica));
-  clinicasSrc.forEach(c => {
+  allClinicas.forEach(c => {
     const o = document.createElement('option'); o.value = JSON.stringify(c);
     o.textContent = c.nom_clinica; sel.appendChild(o);
   });
