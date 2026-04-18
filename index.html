@@ -2264,18 +2264,10 @@ async function saveUsuario() {
   const rol = document.getElementById('mu-rol').value;
   if (!nombre || !username || !pass) { toast('Completá todos los campos', 'err'); return; }
   try {
-    const res = await api('POST', '/usuarios', { username, nombre, password: pass, rol });
+    await api('POST', '/usuarios', { username, nombre, password: pass, rol });
     toast('Usuario creado', 'ok');
     closeModal('modal-usuario');
-    await loadUsuarios();
-    // Si el rol requiere permisos, abrir el modal de permisos automáticamente
-    if (rol === 'prestador' || rol === 'interno') {
-      const uid = res && res.id ? res.id : null;
-      if (uid) {
-        openPermisos(uid, username);
-        toast('Asigná los prestadores al nuevo usuario', 'info');
-      }
-    }
+    loadUsuarios();
   } catch(e) { toast(e.message, 'err'); }
 }
 
@@ -2296,7 +2288,14 @@ async function openPermisos(uid, username) {
   document.getElementById('permisos-uname').textContent = username;
   const sel = document.getElementById('perm-clinica-sel');
   sel.innerHTML = '<option value="">Seleccioná una clínica...</option>';
-  allClinicas.forEach(c => {
+  // Usar M.clinicas (maestro embebido) como fuente — no depende de datos cargados en la BD
+  const clinicasSrc = allClinicas && allClinicas.length > 0
+    ? allClinicas
+    : Object.entries(M.clinicas)
+        .filter(([k]) => parseInt(k) < 80) // excluir proveedores varios y entradas especiales
+        .map(([k, v]) => ({ clinica_id: parseInt(k), nom_clinica: v }))
+        .sort((a, b) => a.nom_clinica.localeCompare(b.nom_clinica));
+  clinicasSrc.forEach(c => {
     const o = document.createElement('option'); o.value = JSON.stringify(c);
     o.textContent = c.nom_clinica; sel.appendChild(o);
   });
