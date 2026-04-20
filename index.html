@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- build:20260417151028 -->
+  <!-- build:20260420200000 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CES · Dashboard Facturación</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -386,11 +386,21 @@ tbody tr:last-child td { border-bottom: none; }
   text-transform: uppercase;
 }
 
-.badge-amb { background: #DBEAFE; color: #1E40AF; }
-.badge-int { background: #EDE9FE; color: #6D28D9; }
+.badge-amb { background: #DBEAFE; color: #1E3A8A; border: 1px solid #BFDBFE; }
+.badge-int { background: #EDE9FE; color: #5B21B6; border: 1px solid #DDD6FE; }
 .badge-ok  { background: #DCFCE7; color: #15803D; }
 .badge-warn{ background: #FEF3C7; color: #B45309; }
 .badge-err { background: #FEE2E2; color: #B91C1C; }
+
+/* Filas coloreadas por tipo AMB/INT */
+tr.row-amb > td { background: #F8FBFF !important; }
+tr.row-int > td { background: #FDFAFF !important; }
+tr.row-amb:hover > td { background: #EBF3FF !important; }
+tr.row-int:hover > td { background: #F3EEFF !important; }
+tr.sub-row-mutual.row-amb > td { background: #EFF6FF !important; }
+tr.sub-row-mutual.row-int > td { background: #F5F0FF !important; }
+tr.sub-row-clinica.row-amb > td { background: #EFF6FF !important; }
+tr.sub-row-clinica.row-int > td { background: #F5F0FF !important; }
 
 /* ── CHART CARD ── */
 .chart-card {
@@ -793,8 +803,8 @@ tbody tr:last-child td { border-bottom: none; }
 .btn-p{display:inline-flex;align-items:center;gap:8px;background:var(--acc);color:#fff;border:none;border-radius:7px;padding:10px 22px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s}
 .btn-p:hover:not(:disabled){background:var(--acc-hl,#2451A0);box-shadow:0 4px 16px rgba(27,58,107,.3)}
 .btn-p:disabled{opacity:.4;cursor:not-allowed}
-.btn-d{display:inline-flex;align-items:center;gap:8px;background:var(--ok);color:#fff;border:none;border-radius:7px;padding:10px 22px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s}
-.btn-d:hover{background:#256b44;box-shadow:0 4px 16px rgba(45,122,79,.3)}
+.btn-d{display:inline-flex;align-items:center;gap:8px;background:#2D7A4F !important;color:#fff !important;border:none;border-radius:7px;padding:10px 22px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;opacity:1 !important}
+.btn-d:hover{background:#256b44 !important;box-shadow:0 4px 16px rgba(45,122,79,.3);color:#fff !important}
 .btn-s{display:inline-flex;align-items:center;gap:8px;background:var(--sur);color:var(--txt);border:1px solid var(--brd);border-radius:7px;padding:8px 16px;font-family:var(--sans);font-size:12px;cursor:pointer;transition:all .2s}
 .btn-s:hover{border-color:var(--acc);color:var(--acc)}
 .brow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px}
@@ -909,6 +919,9 @@ tbody tr:last-child td { border-bottom: none; }
         </a>
         <a onclick="showView('usuarios')" id="nav-usuarios">
           <span class="nav-icon">◎</span> Usuarios
+        </a>
+        <a onclick="showView('login-logs')" id="nav-login-logs">
+          <span class="nav-icon">🔐</span> Logs de acceso
         </a>
       </div>
     </nav>
@@ -1114,12 +1127,12 @@ tbody tr:last-child td { border-bottom: none; }
                 <thead>
                   <tr>
                     <th style="width:24px"></th>
-                    <th>Período</th>
-                    <th>Financiador</th>
-                    <th>Tipo</th>
-                    <th style="text-align:right">Filas</th>
-                    <th class="col-importe" style="text-align:right">Importe</th>
-                    <th class="col-liquida" style="text-align:right">Liquida</th>
+                    <th onclick="sortResumenMutual('periodo')" style="cursor:pointer">Período <span id="sort-mutual-periodo"></span></th>
+                    <th onclick="sortResumenMutual('nom_mutual')" style="cursor:pointer">Financiador <span id="sort-mutual-nom"></span></th>
+                    <th onclick="sortResumenMutual('tipo')" style="cursor:pointer">Tipo <span id="sort-mutual-tipo"></span></th>
+                    <th onclick="sortResumenMutual('filas')" style="cursor:pointer;text-align:right">Filas <span id="sort-mutual-filas"></span></th>
+                    <th class="col-importe" onclick="sortResumenMutual('importe_total')" style="cursor:pointer;text-align:right">Importe <span id="sort-mutual-importe"></span></th>
+                    <th class="col-liquida" onclick="sortResumenMutual('liquida_total')" style="cursor:pointer;text-align:right">Liquida <span id="sort-mutual-liquida"></span></th>
                   </tr>
                 </thead>
                 <tbody id="tbody-resumen-mutual">
@@ -1508,6 +1521,45 @@ tbody tr:last-child td { border-bottom: none; }
         </div>
       </div>
 
+      <!-- ── LOGIN LOGS VIEW ── -->
+      <div class="view" id="view-login-logs">
+        <div class="table-card">
+          <div class="table-card-head">
+            <div class="table-card-title">Registro de accesos</div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <label style="font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer">
+                <input type="checkbox" id="cb-solo-fallidos" onchange="loadLoginLogs()"> Solo fallidos
+              </label>
+              <input type="text" id="f-log-user" placeholder="Filtrar por usuario..." class="filter-select" style="width:160px" oninput="loadLoginLogs()">
+              <button class="btn-secondary" onclick="loadLoginLogs()">↺ Actualizar</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Usuario</th>
+                  <th>IP</th>
+                  <th>Estado</th>
+                  <th>Detalle</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-login-logs">
+                <tr class="loading-row"><td colspan="5">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination">
+            <span id="logs-count">—</span>
+            <div class="pag-btns">
+              <button class="pag-btn" id="logs-prev" onclick="changeLogsPage(-1)">← Anterior</button>
+              <button class="pag-btn" id="logs-next" onclick="changeLogsPage(1)">Siguiente →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ── CAMBIAR CLAVE VIEW ── -->
       <div class="view" id="view-cambiar-clave">
         <div style="max-width:420px;margin:40px auto">
@@ -1752,6 +1804,21 @@ function doLogout() {
 
 // ── APP INIT ───────────────────────────────────────────────
 function showApp() {
+  // Opción B: si hay token, revalidar permisos ANTES de mostrar datos
+  // Si el token expiró o el usuario fue desactivado, redirige al login
+  api('GET', '/auth/me').then(me => {
+    if (!me) { doLogout(); return; }
+    currentUser = me;
+    localStorage.setItem('ces_user', JSON.stringify(me));
+    const _rol = me?.rol || '';
+    showMoney   = me.show_money   !== undefined ? me.show_money   : (_rol === 'admin' || _rol === 'directorio');
+    showLiquida = true;
+    canAdmin    = me.can_admin    !== undefined ? me.can_admin    : (_rol === 'admin');
+    _doShowApp();
+  }).catch(() => { doLogout(); });
+}
+
+function _doShowApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
   const u = currentUser;
@@ -1771,12 +1838,13 @@ function showApp() {
 }
 
 function applyMoneyVisibility() {
-  // .col-importe: visible for admin and directorio only
-  // .col-liquida: visible for admin, directorio, interno, prestador
-  document.querySelectorAll('.col-importe').forEach(el => { el.style.display = showMoney ? '' : 'none'; });
-  document.querySelectorAll('.col-liquida').forEach(el => { el.style.display = showLiquida ? '' : 'none'; });
-  // .money-col is alias for col-importe (legacy)
-  document.querySelectorAll('.money-col').forEach(el => { el.style.display = showMoney ? '' : 'none'; });
+  const rol = currentUser?.rol || '';
+  // interno (gerentes): ve A LIQUIDAR pero NO IMPORTE
+  const _showMoney   = rol === 'admin' || rol === 'directorio';
+  const _showLiquida = true; // todos los roles autenticados ven liquida
+  document.querySelectorAll('.col-importe').forEach(el => { el.style.display = _showMoney ? '' : 'none'; });
+  document.querySelectorAll('.col-liquida').forEach(el => { el.style.display = _showLiquida ? '' : 'none'; });
+  document.querySelectorAll('.money-col').forEach(el => { el.style.display = _showMoney ? '' : 'none'; });
 }
 
 // ── FILTERS ───────────────────────────────────────────────
@@ -1835,12 +1903,12 @@ function showView(name) {
   document.querySelectorAll('.sb-nav a').forEach(a => a.classList.remove('active'));
   document.getElementById('view-' + name).classList.add('active');
   document.getElementById('nav-' + name).classList.add('active');
-  const titles = { dashboard: 'Dashboard', detalle: 'Detalle de prestaciones',
+  const titles = { dashboard: 'Dashboard', detalle: 'Detalle de prestaciones', 'login-logs': 'Registro de accesos',
                    desfase: 'Análisis de período', carga: 'Carga de datos', usuarios: 'Gestión de usuarios',
                    analisis: 'Análisis avanzado', 'cambiar-clave': 'Cambiar contraseña' };
   document.getElementById('topbar-title').textContent = titles[name] || name;
   const topbarFilters = document.getElementById('topbar-filters');
-  const _adminViews = ['carga','usuarios','cambiar-clave','consolidador'];
+  const _adminViews = ['carga','usuarios','cambiar-clave','consolidador','login-logs'];
   topbarFilters.style.display = _adminViews.includes(name) ? 'none' : 'flex';
   // KPI row: ocultar en vistas admin
   const _mainContent = document.querySelector('.content');
@@ -1860,6 +1928,7 @@ function showView(name) {
     loadEvolucion();
   }
   if (name === 'consolidador') { /* consolidador runs its own logic */ }
+  if (name === 'login-logs')   loadLoginLogs();
   if (!['carga','usuarios','cambiar-clave','consolidador'].includes(name)) loadKpisOnly();
   if (name === 'cambiar-clave') { const adminNote = document.getElementById('clave-admin-note'); if(adminNote) adminNote.style.display = (currentUser && currentUser.rol === 'admin') ? 'block' : 'none'; }
 }
@@ -1984,7 +2053,7 @@ function renderResumen(rows) {
         <div class="desfase-seg" style="width:${(r.desfase_4plus||0)/total_dsf*60}px;background:#8B0000"></div>
       </div>` : '—';
     const rowId = `clinica-${idx}`;
-    return `<tr data-clinica-id="${r.clinica||''}" data-periodo="${r.periodo||''}" data-tipo="${r.tipo||''}">
+    return `<tr class="row-${(r.tipo||'').toLowerCase()}" data-clinica-id="${r.clinica||''}" data-periodo="${r.periodo||''}" data-tipo="${r.tipo||''}">
       <td><button class="btn-expand" id="btn-${rowId}" onclick="toggleExpandClinica(this,'${rowId}',${r.clinica||0},'${r.periodo||''}','${r.tipo||''}')">▶</button></td>
       <td style="font-family:var(--mono);font-size:11px;white-space:nowrap">${r.periodo||'—'}</td>
       <td class="resumen-clinica" title="${r.nom_clinica||''}">${r.nom_clinica||'—'}</td>
@@ -1999,12 +2068,35 @@ function renderResumen(rows) {
 }
 
 // ── RESUMEN POR FINANCIADOR ────────────────────────────────
+// datos para sorting
+let _resumenMutualData = [];
+let _sortMutual = { col: 'liquida_total', dir: 'desc' };
+
+function sortResumenMutual(col) {
+  const dir = (_sortMutual.col === col && _sortMutual.dir === 'desc') ? 'asc' : 'desc';
+  _sortMutual = { col, dir };
+  document.querySelectorAll('[id^="sort-mutual-"]').forEach(el => el.textContent = '');
+  const keyMap = { periodo:'periodo', nom_mutual:'nom', tipo:'tipo', filas:'filas', importe_total:'importe', liquida_total:'liquida' };
+  const indEl = document.getElementById('sort-mutual-' + (keyMap[col] || col));
+  if (indEl) indEl.textContent = dir === 'asc' ? ' ↑' : ' ↓';
+  if (_resumenMutualData.length) {
+    const sorted = [..._resumenMutualData].sort((a, b) => {
+      const av = a[col] ?? '', bv = b[col] ?? '';
+      const an = parseFloat(av), bn = parseFloat(bv);
+      const cmp = !isNaN(an) && !isNaN(bn) ? an - bn : String(av).localeCompare(String(bv), 'es');
+      return dir === 'asc' ? cmp : -cmp;
+    });
+    renderResumenMutual(sorted);
+  }
+}
+
 function renderResumenMutual(rows) {
+  _resumenMutualData = rows;
   const tbody = document.getElementById('tbody-resumen-mutual');
   if (!rows || !rows.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--ink3)">Sin datos</td></tr>'; return; }
   tbody.innerHTML = rows.map((r, idx) => {
     const rowId = `mutual-${idx}`;
-    return `<tr data-mutual-id="${r.mutual||''}" data-periodo="${r.periodo||''}" data-tipo="${r.tipo||''}">
+    return `<tr class="row-${(r.tipo||'').toLowerCase()}" data-mutual-id="${r.mutual||''}" data-periodo="${r.periodo||''}" data-tipo="${r.tipo||''}">
       <td><button class="btn-expand" id="btn-${rowId}" onclick="toggleExpandMutual(this,'${rowId}',${r.mutual||0},'${r.periodo||''}','${r.tipo||''}')">▶</button></td>
       <td style="font-family:var(--mono);font-size:11px;white-space:nowrap">${r.periodo||'—'}</td>
       <td class="resumen-clinica" title="${r.nom_mutual||''}">${r.nom_mutual||'—'}</td>
@@ -2026,10 +2118,13 @@ async function toggleExpandClinica(btn, rowId, clinicaId, periodo, tipo) {
   if (isOpen) { btn.classList.remove('open'); btn.textContent = '▶'; return; }
   btn.classList.add('open'); btn.textContent = '▼'; btn.disabled = true;
   try {
+    const gf = getFilters();
     const params = new URLSearchParams();
-    if (periodo) params.append('periodo', periodo);
+    if (gf.periodos_ids) params.append('periodos_ids', gf.periodos_ids);
+    else if (periodo) params.append('periodo', periodo);
+    if (gf.mutuales_ids) params.append('mutuales_ids', gf.mutuales_ids);
     if (clinicaId) params.append('clinicas_ids', clinicaId);
-    if (tipo) params.append('tipo', tipo);
+    if (tipo || gf.tipo) params.append('tipo', tipo || gf.tipo);
     const data = await api('GET', '/resumen/detalle?' + params.toString());
     if (!data || !data.length) {
       insertSubRows(btn, rowId, '<tr data-parent="' + rowId + '" class="sub-row sub-row-mutual"><td></td><td colspan="7" style="color:var(--ink3);font-style:italic">Sin financiadores</td></tr>');
@@ -2038,7 +2133,7 @@ async function toggleExpandClinica(btn, rowId, clinicaId, periodo, tipo) {
     // Sort by liquida DESC
     data.sort((a,b) => (b.liquida_total||0) - (a.liquida_total||0));
     const html = data.map(r => `
-      <tr data-parent="${rowId}" class="sub-row sub-row-mutual">
+      <tr data-parent="${rowId}" class="sub-row sub-row-mutual row-${(r.tipo||'').toLowerCase()}">
         <td></td>
         <td style="font-family:var(--mono);font-size:11px">${r.periodo||'—'}</td>
         <td style="padding-left:28px;color:var(--ink2)">${r.nom_mutual||'—'}</td>
@@ -2062,10 +2157,13 @@ async function toggleExpandMutual(btn, rowId, mutualId, periodo, tipo) {
   if (isOpen) { btn.classList.remove('open'); btn.textContent = '▶'; return; }
   btn.classList.add('open'); btn.textContent = '▼'; btn.disabled = true;
   try {
+    const gf = getFilters();
     const params = new URLSearchParams();
-    if (periodo) params.append('periodo', periodo);
+    if (gf.periodos_ids) params.append('periodos_ids', gf.periodos_ids);
+    else if (periodo) params.append('periodo', periodo);
+    if (gf.clinicas_ids) params.append('clinicas_ids', gf.clinicas_ids);
     if (mutualId) params.append('mutuales_ids', mutualId);
-    if (tipo) params.append('tipo', tipo);
+    if (tipo || gf.tipo) params.append('tipo', tipo || gf.tipo);
     const data = await api('GET', '/resumen/detalle?' + params.toString());
     if (!data || !data.length) {
       insertSubRows(btn, rowId, '<tr data-parent="' + rowId + '" class="sub-row sub-row-clinica"><td></td><td colspan="6" style="color:var(--ink3);font-style:italic">Sin prestadores</td></tr>');
@@ -2073,7 +2171,7 @@ async function toggleExpandMutual(btn, rowId, mutualId, periodo, tipo) {
     }
     data.sort((a,b) => (b.liquida_total||0) - (a.liquida_total||0));
     const html = data.map(r => `
-      <tr data-parent="${rowId}" class="sub-row sub-row-clinica">
+      <tr data-parent="${rowId}" class="sub-row sub-row-clinica row-${(r.tipo||'').toLowerCase()}">
         <td></td>
         <td style="font-family:var(--mono);font-size:11px">${r.periodo||'—'}</td>
         <td style="padding-left:28px;color:var(--ink2)">${r.nom_clinica||'—'}</td>
@@ -2787,6 +2885,57 @@ function toast(msg, type = 'info') {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.className = '', 3500);
 }
+
+// ── LOGIN LOGS ────────────────────────────────────────────────
+let logsOffset = 0;
+const LOGS_LIMIT = 100;
+
+async function loadLoginLogs() {
+  logsOffset = 0;
+  await _fetchLogs();
+}
+
+async function changeLogsPage(dir) {
+  logsOffset = Math.max(0, logsOffset + dir * LOGS_LIMIT);
+  await _fetchLogs();
+}
+
+async function _fetchLogs() {
+  const username = document.getElementById('f-log-user')?.value?.trim() || '';
+  const soloFallidos = document.getElementById('cb-solo-fallidos')?.checked || false;
+  let path = `/admin/login-logs?limit=${LOGS_LIMIT}&offset=${logsOffset}`;
+  if (username) path += `&username=${encodeURIComponent(username)}`;
+  if (soloFallidos) path += '&solo_fallidos=true';
+  const tbody = document.getElementById('tbody-login-logs');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr class="loading-row"><td colspan="5"><div class="spinner dark"></div></td></tr>';
+  try {
+    const data = await api('GET', path);
+    if (!data) return;
+    document.getElementById('logs-count').textContent = `${data.total.toLocaleString()} registros`;
+    document.getElementById('logs-prev').disabled = logsOffset === 0;
+    document.getElementById('logs-next').disabled = logsOffset + LOGS_LIMIT >= data.total;
+    if (!data.data.length) {
+      tbody.innerHTML = '<tr class="loading-row"><td colspan="5">Sin registros</td></tr>'; return;
+    }
+    const motivoMap = { ok:'Login exitoso', usuario_no_encontrado:'Usuario no existe', password_incorrecto:'Contraseña incorrecta' };
+    tbody.innerHTML = data.data.map(r => {
+      const exitoBadge = r.exito
+        ? '<span class="badge badge-ok">✓ OK</span>'
+        : '<span class="badge badge-err">✗ Fallido</span>';
+      return `<tr>
+        <td style="font-family:var(--mono);font-size:11px;white-space:nowrap">${(r.fecha||'—').slice(0,19).replace('T',' ')}</td>
+        <td style="font-weight:500">${r.username}</td>
+        <td style="font-family:var(--mono);font-size:11px;color:var(--ink3)">${r.ip || '—'}</td>
+        <td>${exitoBadge}</td>
+        <td style="font-size:11px;color:var(--ink3)">${motivoMap[r.motivo] || r.motivo || '—'}</td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr class="loading-row"><td colspan="5">Error: ${e.message}</td></tr>`;
+  }
+}
+
 
 // ════════════════════════════════════════════════════════════
 // CONSOLIDADOR DBF — integrado
