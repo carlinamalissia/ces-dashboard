@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- build:20260420210000 -->
+  <!-- build:20260420220000 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CES · Dashboard Facturación</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -1701,20 +1701,17 @@ tr.sub-row-clinica.row-int > td { background: #ECFDF5 !important; }
 const API = 'https://dashboardces-production.up.railway.app';
 
 // ── STATE ──────────────────────────────────────────────────
-// Migrate old token keys if needed
-if (!localStorage.getItem('ces_token') && localStorage.getItem('gea_token')) {
-  localStorage.setItem('ces_token', localStorage.getItem('gea_token'));
-  localStorage.removeItem('gea_token');
-}
-if (!localStorage.getItem('ces_user') && localStorage.getItem('gea_user')) {
-  localStorage.setItem('ces_user', localStorage.getItem('gea_user'));
-  localStorage.removeItem('gea_user');
-}
-let token = localStorage.getItem('ces_token') || null;
-let currentUser = JSON.parse(localStorage.getItem('ces_user') || 'null');
-let showMoney = currentUser?.show_money || false;
-let showLiquida = currentUser?.show_liquida || false;
-let canAdmin = currentUser?.can_admin || false;
+// Opción A: nunca leer sesión del localStorage al iniciar
+// Siempre arranca limpio — login obligatorio en cada recarga
+localStorage.removeItem('ces_token');
+localStorage.removeItem('ces_user');
+localStorage.removeItem('gea_token');
+localStorage.removeItem('gea_user');
+let token = null;
+let currentUser = null;
+let showMoney = false;
+let showLiquida = false;
+let canAdmin = false;
 let detOffset = 0;
 const DET_LIMIT = 200;
 let desfaseChart = null, desfaseChart2 = null;
@@ -1723,20 +1720,12 @@ let pendingUploadFile = null;
 
 // ── INIT ───────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  // OPCIÓN A: cada recarga exige login — limpiar todo estado previo
-  token = null;
-  currentUser = null;
-  localStorage.removeItem('ces_token');
-  localStorage.removeItem('ces_user');
-
-  // Ocultar columnas de dinero hasta saber el rol
+  // Estado ya limpio desde la inicialización de variables (sin localStorage)
+  // Solo configurar UI inicial
   document.querySelectorAll('.col-importe,.money-col').forEach(el => el.style.display = 'none');
   document.querySelectorAll('.col-liquida').forEach(el => el.style.display = 'none');
-
-  // Asegurar que la app esté oculta y el login visible
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
-
   document.getElementById('login-pass').addEventListener('keydown', e => {
     if (e.key === 'Enter') doLogin();
   });
@@ -1808,14 +1797,12 @@ async function doLogin() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || 'Error');
     token = data.access_token;
-    // fetch full user info (includes show_money, can_admin)
+    // Opción A: no guardar en localStorage — solo en memoria
     currentUser = await api('GET', '/auth/me');
     const _rol = (currentUser?.rol || '');
     showMoney   = (_rol === 'admin' || _rol === 'directorio');
     showLiquida = true;
     canAdmin    = (_rol === 'admin');
-    localStorage.setItem('ces_token', token);
-    localStorage.setItem('ces_user', JSON.stringify(currentUser));
     showApp();
   } catch(e) {
     err.textContent = e.message === 'Credenciales incorrectas' ? 'Usuario o contraseña incorrectos' : e.message;
@@ -1825,9 +1812,15 @@ async function doLogin() {
 }
 
 function doLogout() {
+  // Limpiar estado en memoria
   token = null; currentUser = null;
+  showMoney = false; showLiquida = false; canAdmin = false;
+  // Limpiar storage
   localStorage.removeItem('ces_token');
   localStorage.removeItem('ces_user');
+  // Limpiar multiselects para que el próximo login arranque sin filtros
+  Object.keys(msState).forEach(k => { msState[k].selected.clear(); msState[k].all = []; });
+  // Mostrar login
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-user').value = '';
