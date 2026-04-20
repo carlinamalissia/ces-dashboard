@@ -1105,17 +1105,17 @@ tr.sub-row-clinica.row-int > td { background: #ECFDF5 !important; }
                 <thead>
                   <tr>
                     <th style="width:24px"></th>
-                    <th>Período</th>
-                    <th onclick="sortTable('nom_clinica','tbody-resumen')" data-sort="nom_clinica" style="cursor:pointer">Prestador <span class="sort-ind"></span></th>
-                    <th onclick="sortTable('tipo','tbody-resumen')" data-sort="tipo" style="cursor:pointer">Tipo <span class="sort-ind"></span></th>
-                    <th style="text-align:right">Filas</th>
-                    <th class="col-importe" style="text-align:right">Importe</th>
-                    <th class="col-liquida" style="text-align:right">Liquida</th>
-                    <th>Desfase</th>
+                    <th onclick="sortResumenClinica('periodo')" style="cursor:pointer">Período <span id="sort-cli-periodo"></span></th>
+                    <th onclick="sortResumenClinica('nom_clinica')" style="cursor:pointer">Prestador <span id="sort-cli-nom"></span></th>
+                    <th onclick="sortResumenClinica('tipo')" style="cursor:pointer">Tipo <span id="sort-cli-tipo"></span></th>
+                    <th onclick="sortResumenClinica('filas')" style="cursor:pointer;text-align:right">Filas <span id="sort-cli-filas"></span></th>
+                    <th class="col-importe" onclick="sortResumenClinica('importe_total')" style="cursor:pointer;text-align:right">Importe <span id="sort-cli-importe"></span></th>
+                    <th class="col-liquida" onclick="sortResumenClinica('liquida_total')" style="cursor:pointer;text-align:right">Liquida <span id="sort-cli-liquida"></span></th>
+                    <th onclick="sortResumenClinica('desfase_0')" style="cursor:pointer">Desfase <span id="sort-cli-desfase"></span></th>
                   </tr>
                 </thead>
                 <tbody id="tbody-resumen">
-                  <tr class="loading-row"><td colspan="6">Cargando...</td></tr>
+                  <tr class="loading-row"><td colspan="8">Cargando...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -2054,6 +2054,7 @@ function renderKpis(k) {
 }
 
 function renderResumen(rows) {
+  _resumenClinicaData = rows;
   const tbody = document.getElementById('tbody-resumen');
   if (!rows.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--ink3)">Sin datos</td></tr>'; return; }
   tbody.innerHTML = rows.map((r, idx) => {
@@ -2081,6 +2082,28 @@ function renderResumen(rows) {
 }
 
 // ── RESUMEN POR FINANCIADOR ────────────────────────────────
+// ── SORT RESUMEN CLÍNICA ─────────────────────────────────────
+let _resumenClinicaData = [];
+let _sortClinica = { col: 'liquida_total', dir: 'desc' };
+
+function sortResumenClinica(col) {
+  const dir = (_sortClinica.col === col && _sortClinica.dir === 'desc') ? 'asc' : 'desc';
+  _sortClinica = { col, dir };
+  document.querySelectorAll('[id^="sort-cli-"]').forEach(el => el.textContent = '');
+  const keyMap = { periodo:'periodo', nom_clinica:'nom', tipo:'tipo', filas:'filas', importe_total:'importe', liquida_total:'liquida', desfase_0:'desfase' };
+  const indEl = document.getElementById('sort-cli-' + (keyMap[col] || col));
+  if (indEl) indEl.textContent = dir === 'asc' ? ' ↑' : ' ↓';
+  if (_resumenClinicaData.length) {
+    const sorted = [..._resumenClinicaData].sort((a, b) => {
+      const av = a[col] ?? '', bv = b[col] ?? '';
+      const an = parseFloat(av), bn = parseFloat(bv);
+      const cmp = !isNaN(an) && !isNaN(bn) ? an - bn : String(av).localeCompare(String(bv), 'es');
+      return dir === 'asc' ? cmp : -cmp;
+    });
+    renderResumen(sorted);
+  }
+}
+
 // datos para sorting
 let _resumenMutualData = [];
 let _sortMutual = { col: 'liquida_total', dir: 'desc' };
