@@ -5,7 +5,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <!-- build:20260420200000 -->
+  <!-- build:20260420210000 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CES · Dashboard Facturación</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -38,8 +38,8 @@
   --acc4:      #D97706;
   --acc5:      #7C3AED;
   /* Semantic */
-  --amb:       #1B3A6B;
-  --int:       #7C3AED;
+  --amb:       #D97706;  /* naranja AMB */
+  --int:       #16A34A;  /* verde INT */
   /* Sidebar — deep navy from logo */
   --sb-bg:   #0D2137;
   --sb-bg2:  #112843;
@@ -386,21 +386,22 @@ tbody tr:last-child td { border-bottom: none; }
   text-transform: uppercase;
 }
 
-.badge-amb { background: #DBEAFE; color: #1E3A8A; border: 1px solid #BFDBFE; }
-.badge-int { background: #EDE9FE; color: #5B21B6; border: 1px solid #DDD6FE; }
+/* AMB = naranja | INT = verde */
+.badge-amb { background: #FFF3E0; color: #B45309; border: 1px solid #FCD34D; font-weight: 700; }
+.badge-int { background: #DCFCE7; color: #15803D; border: 1px solid #86EFAC; font-weight: 700; }
 .badge-ok  { background: #DCFCE7; color: #15803D; }
 .badge-warn{ background: #FEF3C7; color: #B45309; }
 .badge-err { background: #FEE2E2; color: #B91C1C; }
 
-/* Filas coloreadas por tipo AMB/INT */
-tr.row-amb > td { background: #F8FBFF !important; }
-tr.row-int > td { background: #FDFAFF !important; }
-tr.row-amb:hover > td { background: #EBF3FF !important; }
-tr.row-int:hover > td { background: #F3EEFF !important; }
-tr.sub-row-mutual.row-amb > td { background: #EFF6FF !important; }
-tr.sub-row-mutual.row-int > td { background: #F5F0FF !important; }
-tr.sub-row-clinica.row-amb > td { background: #EFF6FF !important; }
-tr.sub-row-clinica.row-int > td { background: #F5F0FF !important; }
+/* Filas coloreadas por tipo AMB=naranja claro, INT=verde claro */
+tr.row-amb > td { background: #FFFBF0 !important; }
+tr.row-int > td { background: #F0FDF4 !important; }
+tr.row-amb:hover > td { background: #FEF3C7 !important; }
+tr.row-int:hover > td { background: #DCFCE7 !important; }
+tr.sub-row-mutual.row-amb > td { background: #FFF8E7 !important; }
+tr.sub-row-mutual.row-int > td { background: #ECFDF5 !important; }
+tr.sub-row-clinica.row-amb > td { background: #FFF8E7 !important; }
+tr.sub-row-clinica.row-int > td { background: #ECFDF5 !important; }
 
 /* ── CHART CARD ── */
 .chart-card {
@@ -922,6 +923,9 @@ tr.sub-row-clinica.row-int > td { background: #F5F0FF !important; }
         </a>
         <a onclick="showView('login-logs')" id="nav-login-logs">
           <span class="nav-icon">🔐</span> Logs de acceso
+        </a>
+        <a onclick="showView('download-logs')" id="nav-download-logs">
+          <span class="nav-icon">⬇</span> Logs de descargas
         </a>
       </div>
     </nav>
@@ -1560,6 +1564,44 @@ tr.sub-row-clinica.row-int > td { background: #F5F0FF !important; }
         </div>
       </div>
 
+      <!-- ── DOWNLOAD LOGS VIEW ── -->
+      <div class="view" id="view-download-logs">
+        <div class="table-card">
+          <div class="table-card-head">
+            <div class="table-card-title">Registro de descargas</div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <input type="text" id="f-dl-user" placeholder="Filtrar por usuario..." class="filter-select" style="width:160px" oninput="loadDownloadLogs()">
+              <button class="btn-secondary" onclick="loadDownloadLogs()">↺ Actualizar</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Usuario</th>
+                  <th>Períodos</th>
+                  <th>Prestadores</th>
+                  <th>Financiadores</th>
+                  <th>Tipo</th>
+                  <th style="text-align:right">Filas</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-download-logs">
+                <tr class="loading-row"><td colspan="7">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination">
+            <span id="dl-logs-count">—</span>
+            <div class="pag-btns">
+              <button class="pag-btn" id="dl-logs-prev" onclick="changeDlLogsPage(-1)">← Anterior</button>
+              <button class="pag-btn" id="dl-logs-next" onclick="changeDlLogsPage(1)">Siguiente →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ── CAMBIAR CLAVE VIEW ── -->
       <div class="view" id="view-cambiar-clave">
         <div style="max-width:420px;margin:40px auto">
@@ -1681,33 +1723,23 @@ let pendingUploadFile = null;
 
 // ── INIT ───────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  // Hide money columns by default before we know the role
+  // OPCIÓN A: cada recarga exige login — limpiar todo estado previo
+  token = null;
+  currentUser = null;
+  localStorage.removeItem('ces_token');
+  localStorage.removeItem('ces_user');
+
+  // Ocultar columnas de dinero hasta saber el rol
   document.querySelectorAll('.col-importe,.money-col').forEach(el => el.style.display = 'none');
   document.querySelectorAll('.col-liquida').forEach(el => el.style.display = 'none');
+
+  // Asegurar que la app esté oculta y el login visible
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+
   document.getElementById('login-pass').addEventListener('keydown', e => {
     if (e.key === 'Enter') doLogin();
   });
-  if (token && currentUser) {
-    const _rol = currentUser?.rol || '';
-    showMoney   = currentUser.show_money !== undefined ? currentUser.show_money : (_rol === 'admin' || _rol === 'directorio');
-    showLiquida = true;
-    canAdmin    = currentUser.can_admin  !== undefined ? currentUser.can_admin  : (_rol === 'admin');
-    // Re-fetch fresh user info to ensure flags are current
-    api('GET', '/auth/me').then(me => {
-      if (!me) return;
-      currentUser = me;
-      const _merol = me?.rol || '';
-      showMoney   = me.show_money !== undefined ? me.show_money : (_merol === 'admin' || _merol === 'directorio');
-      showLiquida = true;
-      canAdmin    = me.can_admin  !== undefined ? me.can_admin  : (_merol === 'admin');
-      localStorage.setItem('ces_user', JSON.stringify(me));
-      // Re-apply visibility with fresh data
-      const adminNav = document.getElementById('admin-nav-section');
-      if (adminNav) adminNav.style.display = canAdmin ? 'block' : 'none';
-      applyMoneyVisibility();
-    }).catch(() => {});
-    showApp();
-  }
 });
 
 // ── API HELPER ─────────────────────────────────────────────
@@ -1804,21 +1836,8 @@ function doLogout() {
 
 // ── APP INIT ───────────────────────────────────────────────
 function showApp() {
-  // Opción B: si hay token, revalidar permisos ANTES de mostrar datos
-  // Si el token expiró o el usuario fue desactivado, redirige al login
-  api('GET', '/auth/me').then(me => {
-    if (!me) { doLogout(); return; }
-    currentUser = me;
-    localStorage.setItem('ces_user', JSON.stringify(me));
-    const _rol = me?.rol || '';
-    showMoney   = me.show_money   !== undefined ? me.show_money   : (_rol === 'admin' || _rol === 'directorio');
-    showLiquida = true;
-    canAdmin    = me.can_admin    !== undefined ? me.can_admin    : (_rol === 'admin');
-    _doShowApp();
-  }).catch(() => { doLogout(); });
-}
-
-function _doShowApp() {
+  // Con Opción A el token es siempre fresco (viene de doLogin())
+  // No hace falta revalidar — currentUser ya está seteado por doLogin
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
   const u = currentUser;
@@ -1903,12 +1922,12 @@ function showView(name) {
   document.querySelectorAll('.sb-nav a').forEach(a => a.classList.remove('active'));
   document.getElementById('view-' + name).classList.add('active');
   document.getElementById('nav-' + name).classList.add('active');
-  const titles = { dashboard: 'Dashboard', detalle: 'Detalle de prestaciones', 'login-logs': 'Registro de accesos',
+  const titles = { dashboard: 'Dashboard', detalle: 'Detalle de prestaciones', 'login-logs': 'Registro de accesos', 'download-logs': 'Registro de descargas',
                    desfase: 'Análisis de período', carga: 'Carga de datos', usuarios: 'Gestión de usuarios',
                    analisis: 'Análisis avanzado', 'cambiar-clave': 'Cambiar contraseña' };
   document.getElementById('topbar-title').textContent = titles[name] || name;
   const topbarFilters = document.getElementById('topbar-filters');
-  const _adminViews = ['carga','usuarios','cambiar-clave','consolidador','login-logs'];
+  const _adminViews = ['carga','usuarios','cambiar-clave','consolidador','login-logs','download-logs'];
   topbarFilters.style.display = _adminViews.includes(name) ? 'none' : 'flex';
   // KPI row: ocultar en vistas admin
   const _mainContent = document.querySelector('.content');
@@ -1928,7 +1947,8 @@ function showView(name) {
     loadEvolucion();
   }
   if (name === 'consolidador') { /* consolidador runs its own logic */ }
-  if (name === 'login-logs')   loadLoginLogs();
+  if (name === 'login-logs')    loadLoginLogs();
+  if (name === 'download-logs') loadDownloadLogs();
   if (!['carga','usuarios','cambiar-clave','consolidador'].includes(name)) loadKpisOnly();
   if (name === 'cambiar-clave') { const adminNote = document.getElementById('clave-admin-note'); if(adminNote) adminNote.style.display = (currentUser && currentUser.rol === 'admin') ? 'block' : 'none'; }
 }
@@ -2536,6 +2556,7 @@ async function downloadResumen() {
     const a = document.createElement('a'); a.href = url;
     a.download = `CES_Resumen_${f.periodo||'todo'}.xlsx`;
     a.click(); URL.revokeObjectURL(url);
+    toast('Excel descargado', 'ok');
   } catch(e) { toast(e.message, 'err'); }
 }
 
@@ -2548,6 +2569,7 @@ async function downloadDetalle() {
     const a = document.createElement('a'); a.href = url;
     a.download = `CES_Detalle_${f.periodo||'todo'}.xlsx`;
     a.click(); URL.revokeObjectURL(url);
+    toast('Excel descargado', 'ok');
   } catch(e) { toast(e.message, 'err'); }
 }
 
@@ -2885,6 +2907,51 @@ function toast(msg, type = 'info') {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.className = '', 3500);
 }
+
+// ── DOWNLOAD LOGS ─────────────────────────────────────────────
+let dlLogsOffset = 0;
+const DL_LOGS_LIMIT = 100;
+
+async function loadDownloadLogs() {
+  dlLogsOffset = 0;
+  await _fetchDlLogs();
+}
+
+async function changeDlLogsPage(dir) {
+  dlLogsOffset = Math.max(0, dlLogsOffset + dir * DL_LOGS_LIMIT);
+  await _fetchDlLogs();
+}
+
+async function _fetchDlLogs() {
+  const username = document.getElementById('f-dl-user')?.value?.trim() || '';
+  let path = `/admin/download-logs?limit=${DL_LOGS_LIMIT}&offset=${dlLogsOffset}`;
+  if (username) path += `&username=${encodeURIComponent(username)}`;
+  const tbody = document.getElementById('tbody-download-logs');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr class="loading-row"><td colspan="7"><div class="spinner dark"></div></td></tr>';
+  try {
+    const data = await api('GET', path);
+    if (!data) return;
+    document.getElementById('dl-logs-count').textContent = `${data.total.toLocaleString()} descargas`;
+    document.getElementById('dl-logs-prev').disabled = dlLogsOffset === 0;
+    document.getElementById('dl-logs-next').disabled = dlLogsOffset + DL_LOGS_LIMIT >= data.total;
+    if (!data.data.length) {
+      tbody.innerHTML = '<tr class="loading-row"><td colspan="7">Sin registros</td></tr>'; return;
+    }
+    tbody.innerHTML = data.data.map(r => `<tr>
+      <td style="font-family:var(--mono);font-size:11px;white-space:nowrap">${(r.fecha||'—').slice(0,19).replace('T',' ')}</td>
+      <td style="font-weight:500">${r.username}</td>
+      <td style="font-family:var(--mono);font-size:11px">${r.periodos||'—'}</td>
+      <td style="font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis" title="${r.clinicas||''}">${r.clinicas||'todas'}</td>
+      <td style="font-size:11px;max-width:140px;overflow:hidden;text-overflow:ellipsis" title="${r.mutuales||''}">${r.mutuales||'todas'}</td>
+      <td><span class="badge badge-${(r.tipo_prest||'').toLowerCase() === 'amb' ? 'amb' : (r.tipo_prest||'').toLowerCase() === 'int' ? 'int' : 'ok'}">${r.tipo_prest||'AMB+INT'}</span></td>
+      <td style="text-align:right;font-family:var(--mono)">${(r.filas||0).toLocaleString()}</td>
+    </tr>`).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr class="loading-row"><td colspan="7">Error: ${e.message}</td></tr>`;
+  }
+}
+
 
 // ── LOGIN LOGS ────────────────────────────────────────────────
 let logsOffset = 0;
