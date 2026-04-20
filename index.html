@@ -2053,6 +2053,9 @@ function renderKpis(k) {
   }
 }
 
+let _resumenClinicaData = [];
+let _sortClinica = { col: 'liquida_total', dir: 'desc' };
+
 function renderResumen(rows) {
   _resumenClinicaData = rows;
   const tbody = document.getElementById('tbody-resumen');
@@ -2083,8 +2086,6 @@ function renderResumen(rows) {
 
 // ── RESUMEN POR FINANCIADOR ────────────────────────────────
 // ── SORT RESUMEN CLÍNICA ─────────────────────────────────────
-let _resumenClinicaData = [];
-let _sortClinica = { col: 'liquida_total', dir: 'desc' };
 
 function sortResumenClinica(col) {
   const dir = (_sortClinica.col === col && _sortClinica.dir === 'desc') ? 'asc' : 'desc';
